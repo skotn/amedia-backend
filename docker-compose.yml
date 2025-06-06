@@ -1,27 +1,37 @@
 version: '3.8'
 
 services:
-  postgres:
-    image: postgres:15
+  amedia-postgres-service:
+    container_name: amedia-postgresql
+    image: postgres:16.2-alpine
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: dbz
+      POSTGRES_USER: postgres_userz
+      POSTGRES_PASSWORD: pass123z
+      POSTGRES_DB: local-database
+      CORS_ALLOWED_ORIGIN: "http://localhost:3000"
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - local-postgres-volume:/var/lib/postgresql/data
 
   app:
-    build: .
+    image: amedia-skotn-backend:latest
+    #build: .
     depends_on:
-      - postgres
+      - amedia-postgres-service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/dbz
-      SPRING_DATASOURCE_USERNAME: user
-      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_DATASOURCE_URL: jdbc:postgresql://amedia-postgres-service:5432/local-database
+      SPRING_DATASOURCE_USERNAME: postgres_userz
+      SPRING_DATASOURCE_PASSWORD: pass123z
     ports:
       - "8080:8080"
 
+  frontend:
+    image: amedia-skotn-frontend:latest
+    ports:
+      - "3000:80"
+    depends_on:
+      - app
+
 volumes:
-  pgdata:
+  local-postgres-volume:
